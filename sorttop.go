@@ -32,9 +32,12 @@ func (top NumSort) Swap(i, j int) {
 	top.num[j] = tmpnum
 }
 func toNum(str string) (out int) {
-	_, err := fmt.Sscanf(str, "%d", &out)
-	if err != nil {
-		out = 0
+	for _, char := range str {
+		if char >= '0' && char <='9' {
+			out = 10 * out + int( char - '0' )
+		} else {
+			break
+		}
 	}
 	return
 }
