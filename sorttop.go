@@ -11,8 +11,9 @@ import (
 	"bufio"
 	"os"
 	"io"
-	"regexp"
 	"sort"
+	"runtime/pprof"
+	"flag"
 )
 
 type NumSort struct {
@@ -42,9 +43,19 @@ func (top NumSort) Less(i, j int) bool {
 }
 
 func main() {
+	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
+	flag.Parse()
+	if *cpuprofile != "" {
+		pf, err := os.Create(*cpuprofile)
+		if err != nil {
+			dief("cannot create %s: %s", *cpuprofile, err)
+		}
+		pprof.StartCPUProfile(pf)
+		defer pprof.StopCPUProfile()
+	}
+
 	maxlen := 10
 	top := NumSort{ str: make([]string, 0) }
-	re := regexp.MustCompile("\n$")
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		cur, err := reader.ReadString('\n')
@@ -53,7 +64,9 @@ func main() {
 		} else if err != nil {
 			dief("read error: %s", err)
 		}
-		cur = re.ReplaceAllString(cur, "")
+		if cur[len(cur)-1] == '\n' {
+			cur = cur[0:len(cur)-2]
+		}
 		top.str = append(top.str, cur)
 		curnum := toNum(cur)
 		top.num = append(top.num, curnum)
