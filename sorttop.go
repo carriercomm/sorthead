@@ -4,7 +4,6 @@ TODO:
 	GNU sort options
 	-10	top 10 lines
 	file names in cmdline, not just stdin
-	make it actually faster than GNU sort :)
 */
 package main
 import (
@@ -16,14 +15,20 @@ import (
 	"sort"
 )
 
-type NumSort []string
-func (slice NumSort) Len() int {
-	return len(slice)
+type NumSort struct {
+	str []string
+	num []int
 }
-func (slice NumSort) Swap(i, j int) {
-	tmp := slice[i]
-	slice[i] = slice[j]
-	slice[j] = tmp
+func (top NumSort) Len() int {
+	return len(top.str)
+}
+func (top NumSort) Swap(i, j int) {
+	tmp := top.str[i]
+	top.str[i] = top.str[j]
+	top.str[j] = tmp
+	tmpnum := top.num[i]
+	top.num[i] = top.num[j]
+	top.num[j] = tmpnum
 }
 func toNum(str string) (out int) {
 	_, err := fmt.Sscanf(str, "%d", &out)
@@ -32,13 +37,13 @@ func toNum(str string) (out int) {
 	}
 	return
 }
-func (slice NumSort) Less(i, j int) bool {
-	return toNum(slice[i]) > toNum(slice[j])
+func (top NumSort) Less(i, j int) bool {
+	return top.num[i] > top.num[j]
 }
 
 func main() {
 	maxlen := 10
-	top := make([]string, 0)
+	top := NumSort{ str: make([]string, 0) }
 	re := regexp.MustCompile("\n$")
 	reader := bufio.NewReader(os.Stdin)
 	for {
@@ -49,15 +54,18 @@ func main() {
 			dief("read error: %s", err)
 		}
 		cur = re.ReplaceAllString(cur, "")
-		top = append(top, cur)
+		top.str = append(top.str, cur)
+		curnum := toNum(cur)
+		top.num = append(top.num, curnum)
 		//sort.Sort(sort.StringSlice(top))
-		sort.Sort(NumSort(top))
-		if len(top) > maxlen {
-			top = top[0:maxlen-1]
+		sort.Sort(top)
+		if len(top.str) > maxlen {
+			top.str = top.str[0:maxlen-1]
+			top.num = top.num[0:maxlen-1]
 		}
-		//warnf("top: %v", top) //////
+		//warnf("top.num: %v", top.num) //////
 	}
-	for _, str := range top {
+	for _, str := range top.str {
 		fmt.Println(str)
 	}
 }
