@@ -70,7 +70,7 @@ func main() {
 			dief("read error: %s", err)
 		}
 		if cur[len(cur)-1] == '\n' {
-			cur = cur[0 : len(cur)-2]
+			cur = cur[0 : len(cur)-1]
 		}
 		top.str = append(top.str, cur)
 		curnum := toNum(cur)
