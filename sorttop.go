@@ -14,25 +14,14 @@ import (
 	"io"
 	"os"
 	"runtime/pprof"
-	"sort"
 )
 
 type NumSort struct {
-	str []string
-	num []int
+	str    []string
+	num    []int
+	length int // TODO: panic if it's not positive
 }
 
-func (top NumSort) Len() int {
-	return len(top.str)
-}
-func (top NumSort) Swap(i, j int) {
-	tmp := top.str[i]
-	top.str[i] = top.str[j]
-	top.str[j] = tmp
-	tmpnum := top.num[i]
-	top.num[i] = top.num[j]
-	top.num[j] = tmpnum
-}
 func toNum(str string) (out int) {
 	for _, char := range str {
 		if char >= '0' && char <= '9' {
@@ -43,8 +32,35 @@ func toNum(str string) (out int) {
 	}
 	return
 }
-func (top NumSort) Less(i, j int) bool {
-	return top.num[i] > top.num[j]
+func (top NumSort) String() (out string) {
+	for _, str := range top.str {
+		out = out + str + "\n"
+	}
+	return
+}
+func (top *NumSort) Add(str string) {
+	num := toNum(str)
+	pos := top.length
+	for i := len(top.str) - 1; i >= 0; i-- {
+		numi := top.num[i]
+		if num > numi {
+			pos = i
+		} else if num < numi {
+			break
+		}
+	}
+	if len(top.str) < top.length {
+		top.str = append(top.str, "")
+		top.num = append(top.num, 0)
+	}
+	for i := len(top.str) - 1; i > pos; i-- {
+		top.str[i] = top.str[i-1]
+		top.num[i] = top.num[i-1]
+	}
+	if pos < len(top.str) {
+		top.str[pos] = str
+		top.num[pos] = num
+	}
 }
 
 func main() {
@@ -59,8 +75,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	maxlen := 10
-	top := NumSort{str: make([]string, 0)}
+	top := NumSort{str: make([]string, 0), length: 10}
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		cur, err := reader.ReadString('\n')
@@ -72,20 +87,9 @@ func main() {
 		if cur[len(cur)-1] == '\n' {
 			cur = cur[0 : len(cur)-1]
 		}
-		top.str = append(top.str, cur)
-		curnum := toNum(cur)
-		top.num = append(top.num, curnum)
-		//sort.Sort(sort.StringSlice(top))
-		sort.Sort(top)
-		if len(top.str) > maxlen {
-			top.str = top.str[0 : maxlen-1]
-			top.num = top.num[0 : maxlen-1]
-		}
-		//warnf("top.num: %v", top.num) //////
+		top.Add(cur)
 	}
-	for _, str := range top.str {
-		fmt.Println(str)
-	}
+	fmt.Printf("%s", top)
 }
 
 func warnf(f string, args ...interface{}) {
