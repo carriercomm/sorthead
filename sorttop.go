@@ -6,20 +6,22 @@ TODO:
 	file names in cmdline, not just stdin
 */
 package main
+
 import (
-	"fmt"
 	"bufio"
-	"os"
-	"io"
-	"sort"
-	"runtime/pprof"
 	"flag"
+	"fmt"
+	"io"
+	"os"
+	"runtime/pprof"
+	"sort"
 )
 
 type NumSort struct {
 	str []string
 	num []int
 }
+
 func (top NumSort) Len() int {
 	return len(top.str)
 }
@@ -33,8 +35,8 @@ func (top NumSort) Swap(i, j int) {
 }
 func toNum(str string) (out int) {
 	for _, char := range str {
-		if char >= '0' && char <='9' {
-			out = 10 * out + int( char - '0' )
+		if char >= '0' && char <= '9' {
+			out = 10*out + int(char-'0')
 		} else {
 			break
 		}
@@ -58,7 +60,7 @@ func main() {
 	}
 
 	maxlen := 10
-	top := NumSort{ str: make([]string, 0) }
+	top := NumSort{str: make([]string, 0)}
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		cur, err := reader.ReadString('\n')
@@ -68,7 +70,7 @@ func main() {
 			dief("read error: %s", err)
 		}
 		if cur[len(cur)-1] == '\n' {
-			cur = cur[0:len(cur)-2]
+			cur = cur[0 : len(cur)-2]
 		}
 		top.str = append(top.str, cur)
 		curnum := toNum(cur)
@@ -76,8 +78,8 @@ func main() {
 		//sort.Sort(sort.StringSlice(top))
 		sort.Sort(top)
 		if len(top.str) > maxlen {
-			top.str = top.str[0:maxlen-1]
-			top.num = top.num[0:maxlen-1]
+			top.str = top.str[0 : maxlen-1]
+			top.num = top.num[0 : maxlen-1]
 		}
 		//warnf("top.num: %v", top.num) //////
 	}
