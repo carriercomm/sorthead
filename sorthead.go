@@ -16,7 +16,7 @@ import (
 	"runtime/pprof"
 )
 
-type NumSort struct {
+type SortHead struct {
 	str    []string
 	num    []int
 	length int // TODO: panic if it's not positive
@@ -32,13 +32,13 @@ func toNum(str string) (out int) {
 	}
 	return
 }
-func (top NumSort) String() (out string) {
+func (top SortHead) String() (out string) {
 	for _, str := range top.str {
 		out = out + str + "\n"
 	}
 	return
 }
-func (top *NumSort) Add(str string) {
+func (top *SortHead) Add(str string) {
 	num := toNum(str)
 	pos := top.length
 	for i := len(top.str) - 1; i >= 0; i-- {
@@ -75,7 +75,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	top := NumSort{str: make([]string, 0), length: 10}
+	top := SortHead{str: make([]string, 0), length: 10}
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		cur, err := reader.ReadString('\n')
