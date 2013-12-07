@@ -33,8 +33,8 @@ func init() {
 	toplen = 10
 }
 
-func toNum(str []rune) (out int) {
-	for _, char := range str {
+func curToNum() (out int) {
+	for _, char := range topval[0] {
 		if char >= '0' && char <= '9' {
 			out = 10*out + int(char-'0')
 		} else {
@@ -44,7 +44,7 @@ func toNum(str []rune) (out int) {
 	return
 }
 func add() {
-	curnum := toNum(topval[0])
+	curnum := curToNum()
 	pos := toplen + 1
 	for i := len(topval) - 1; i > 0; i-- {
 		numi := numkey[i]
