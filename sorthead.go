@@ -19,7 +19,7 @@ import (
 
 // topval[0] and numkey[0] are for current string,
 // the rest are current top values
-var topval [][]rune
+var topval [][]byte
 var numkey []int
 
 // maximum len(topval) is toplen+1
@@ -28,7 +28,7 @@ var numkey []int
 var toplen int
 
 func init() {
-	topval = [][]rune{{}}
+	topval = [][]byte{{}}
 	numkey = make([]int, 1)
 	toplen = 10
 }
@@ -55,7 +55,7 @@ func add() {
 		}
 	}
 	if len(topval) < toplen+1 {
-		topval = append(topval, []rune{})
+		topval = append(topval, []byte{})
 		numkey = append(numkey, 0)
 	}
 	for i := len(topval) - 1; i > pos; i-- {
@@ -88,15 +88,15 @@ func init() {
 func readString() bool {
 	topval[0] = topval[0][0:0]
 	for {
-		r, _, err := reader.ReadRune()
-		if r == '\n' {
+		b, err := reader.ReadByte()
+		if b == '\n' {
 			return true
 		} else if err == io.EOF {
 			return false
 		} else if err != nil {
 			log.Fatalf("read error: %s", err)
 		} else {
-			topval[0] = append(topval[0], r)
+			topval[0] = append(topval[0], b)
 		}
 	}
 	panic("")
