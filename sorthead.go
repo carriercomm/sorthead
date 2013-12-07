@@ -19,7 +19,7 @@ import (
 
 // topval[0] and numkey[0] are for current string,
 // the rest are current top values
-var topval []string
+var topval [][]rune
 var numkey []int
 
 // maximum len(topval) is toplen+1
@@ -28,12 +28,12 @@ var numkey []int
 var toplen int
 
 func init() {
-	topval = make([]string, 1)
+	topval = [][]rune{{}}
 	numkey = make([]int, 1)
 	toplen = 10
 }
 
-func toNum(str string) (out int) {
+func toNum(str []rune) (out int) {
 	for _, char := range str {
 		if char >= '0' && char <= '9' {
 			out = 10*out + int(char-'0')
@@ -55,16 +55,28 @@ func add() {
 		}
 	}
 	if len(topval) < toplen+1 {
-		topval = append(topval, "")
+		topval = append(topval, []rune{})
 		numkey = append(numkey, 0)
 	}
 	for i := len(topval) - 1; i > pos; i-- {
-		topval[i] = topval[i-1]
-		numkey[i] = numkey[i-1]
+		copyVal(i, i-1)
 	}
 	if pos < len(topval) {
-		topval[pos] = topval[0]
-		numkey[pos] = curnum
+		numkey[0] = curnum
+		copyVal(pos, 0)
+	}
+}
+
+func copyVal(to, from int) {
+	if from >= len(topval) || from < 0 || to >= len(topval) || to < 0 {
+		log.Fatalf("copyVal bad index: to=%d to=%d len=%d", to, from, len(topval))
+	}
+	numkey[to] = numkey[from]
+	copy(topval[to], topval[from])
+	if len(topval[to]) < len(topval[from]) {
+		topval[to] = append(topval[to], topval[from][len(topval[to]):]...)
+	} else if len(topval[to]) > len(topval[from]) {
+		topval[to] = topval[to][:len(topval[from])]
 	}
 }
 
@@ -91,10 +103,10 @@ func main() {
 		if cur[len(cur)-1] == '\n' {
 			cur = cur[0 : len(cur)-1]
 		}
-		topval[0] = cur
+		topval[0] = []rune(cur)
 		add()
 	}
 	for _, str := range topval[1:] {
-		fmt.Println(str)
+		fmt.Println(string(str))
 	}
 }
