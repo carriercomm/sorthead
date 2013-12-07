@@ -80,6 +80,28 @@ func copyVal(to, from int) {
 	}
 }
 
+var reader *bufio.Reader
+
+func init() {
+	reader = bufio.NewReader(os.Stdin)
+}
+func readString() bool {
+	topval[0] = topval[0][0:0]
+	for {
+		r, _, err := reader.ReadRune()
+		if r == '\n' {
+			return true
+		} else if err == io.EOF {
+			return false
+		} else if err != nil {
+			log.Fatalf("read error: %s", err)
+		} else {
+			topval[0] = append(topval[0], r)
+		}
+	}
+	panic("")
+}
+
 func main() {
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 	flag.Parse()
@@ -91,19 +113,7 @@ func main() {
 		pprof.StartCPUProfile(pf)
 		defer pprof.StopCPUProfile()
 	}
-
-	reader := bufio.NewReader(os.Stdin)
-	for {
-		cur, err := reader.ReadString('\n')
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			log.Fatalf("read error: %s", err)
-		}
-		if cur[len(cur)-1] == '\n' {
-			cur = cur[0 : len(cur)-1]
-		}
-		topval[0] = []rune(cur)
+	for readString() {
 		add()
 	}
 	for _, str := range topval[1:] {
