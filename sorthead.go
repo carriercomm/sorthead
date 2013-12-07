@@ -17,9 +17,21 @@ import (
 	"runtime/pprof"
 )
 
+// topval[0] and numkey[0] are for current string,
+// the rest are current top values
 var topval []string
 var numkey []int
-var toplen int // TODO: panic if it's not positive
+
+// maximum len(topval) is toplen+1
+// (element 0 for current value and elements 1..toplen for the top)
+// TODO: panic if toplen is not positive
+var toplen int
+
+func init() {
+	topval = make([]string, 1)
+	numkey = make([]int, 1)
+	toplen = 10
+}
 
 func toNum(str string) (out int) {
 	for _, char := range str {
@@ -31,18 +43,18 @@ func toNum(str string) (out int) {
 	}
 	return
 }
-func add(str string) {
-	num := toNum(str)
-	pos := toplen
-	for i := len(topval) - 1; i >= 0; i-- {
+func add() {
+	curnum := toNum(topval[0])
+	pos := toplen + 1
+	for i := len(topval) - 1; i > 0; i-- {
 		numi := numkey[i]
-		if num > numi {
+		if curnum > numi {
 			pos = i
-		} else if num < numi {
+		} else if curnum < numi {
 			break
 		}
 	}
-	if len(topval) < toplen {
+	if len(topval) < toplen+1 {
 		topval = append(topval, "")
 		numkey = append(numkey, 0)
 	}
@@ -51,8 +63,8 @@ func add(str string) {
 		numkey[i] = numkey[i-1]
 	}
 	if pos < len(topval) {
-		topval[pos] = str
-		numkey[pos] = num
+		topval[pos] = topval[0]
+		numkey[pos] = curnum
 	}
 }
 
@@ -68,8 +80,6 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	topval = make([]string, 0)
-	toplen = 10
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		cur, err := reader.ReadString('\n')
@@ -81,9 +91,10 @@ func main() {
 		if cur[len(cur)-1] == '\n' {
 			cur = cur[0 : len(cur)-1]
 		}
-		add(cur)
+		topval[0] = cur
+		add()
 	}
-	for _, str := range topval {
+	for _, str := range topval[1:] {
 		fmt.Println(str)
 	}
 }
