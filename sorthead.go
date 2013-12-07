@@ -12,6 +12,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"runtime/pprof"
 )
@@ -61,7 +62,7 @@ func main() {
 	if *cpuprofile != "" {
 		pf, err := os.Create(*cpuprofile)
 		if err != nil {
-			dief("cannot create %s: %s", *cpuprofile, err)
+			log.Fatalf("cannot create %s: %s", *cpuprofile, err)
 		}
 		pprof.StartCPUProfile(pf)
 		defer pprof.StopCPUProfile()
@@ -75,7 +76,7 @@ func main() {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			dief("read error: %s", err)
+			log.Fatalf("read error: %s", err)
 		}
 		if cur[len(cur)-1] == '\n' {
 			cur = cur[0 : len(cur)-1]
@@ -85,13 +86,4 @@ func main() {
 	for _, str := range topval {
 		fmt.Println(str)
 	}
-}
-
-func warnf(f string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, "Warning: "+f+"\n", args...)
-}
-
-func dief(f string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, "Error: "+f+"\n", args...)
-	os.Exit(1)
 }
