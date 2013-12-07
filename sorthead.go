@@ -16,11 +16,9 @@ import (
 	"runtime/pprof"
 )
 
-var top struct {
-	str    []string
-	num    []int
-	length int // TODO: panic if it's not positive
-}
+var topval []string
+var numkey []int
+var toplen int // TODO: panic if it's not positive
 
 func toNum(str string) (out int) {
 	for _, char := range str {
@@ -32,28 +30,28 @@ func toNum(str string) (out int) {
 	}
 	return
 }
-func Add(str string) {
+func add(str string) {
 	num := toNum(str)
-	pos := top.length
-	for i := len(top.str) - 1; i >= 0; i-- {
-		numi := top.num[i]
+	pos := toplen
+	for i := len(topval) - 1; i >= 0; i-- {
+		numi := numkey[i]
 		if num > numi {
 			pos = i
 		} else if num < numi {
 			break
 		}
 	}
-	if len(top.str) < top.length {
-		top.str = append(top.str, "")
-		top.num = append(top.num, 0)
+	if len(topval) < toplen {
+		topval = append(topval, "")
+		numkey = append(numkey, 0)
 	}
-	for i := len(top.str) - 1; i > pos; i-- {
-		top.str[i] = top.str[i-1]
-		top.num[i] = top.num[i-1]
+	for i := len(topval) - 1; i > pos; i-- {
+		topval[i] = topval[i-1]
+		numkey[i] = numkey[i-1]
 	}
-	if pos < len(top.str) {
-		top.str[pos] = str
-		top.num[pos] = num
+	if pos < len(topval) {
+		topval[pos] = str
+		numkey[pos] = num
 	}
 }
 
@@ -69,8 +67,8 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	top.str = make([]string, 0)
-	top.length = 10
+	topval = make([]string, 0)
+	toplen = 10
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		cur, err := reader.ReadString('\n')
@@ -82,9 +80,9 @@ func main() {
 		if cur[len(cur)-1] == '\n' {
 			cur = cur[0 : len(cur)-1]
 		}
-		Add(cur)
+		add(cur)
 	}
-	for _, str := range top.str {
+	for _, str := range topval {
 		fmt.Println(str)
 	}
 }
