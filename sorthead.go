@@ -16,7 +16,7 @@ import (
 	"runtime/pprof"
 )
 
-type SortHead struct {
+var top struct {
 	str    []string
 	num    []int
 	length int // TODO: panic if it's not positive
@@ -32,13 +32,7 @@ func toNum(str string) (out int) {
 	}
 	return
 }
-func (top SortHead) String() (out string) {
-	for _, str := range top.str {
-		out = out + str + "\n"
-	}
-	return
-}
-func (top *SortHead) Add(str string) {
+func Add(str string) {
 	num := toNum(str)
 	pos := top.length
 	for i := len(top.str) - 1; i >= 0; i-- {
@@ -75,7 +69,8 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	top := SortHead{str: make([]string, 0), length: 10}
+	top.str = make([]string, 0)
+	top.length = 10
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		cur, err := reader.ReadString('\n')
@@ -87,9 +82,11 @@ func main() {
 		if cur[len(cur)-1] == '\n' {
 			cur = cur[0 : len(cur)-1]
 		}
-		top.Add(cur)
+		Add(cur)
 	}
-	fmt.Printf("%s", top)
+	for _, str := range top.str {
+		fmt.Println(str)
+	}
 }
 
 func warnf(f string, args ...interface{}) {
