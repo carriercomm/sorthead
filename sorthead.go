@@ -19,7 +19,8 @@ import (
 // topval[0] and numkey[0] are for current string,
 // the rest are current top values
 var topval [][]byte
-var numkey []int64
+type numkeyType float64
+var numkey []numkeyType
 
 // maximum len(topval) is toplen+1
 // (element 0 for current value and elements 1..toplen for the top)
@@ -28,14 +29,14 @@ var toplen int
 
 func init() {
 	topval = [][]byte{{}}
-	numkey = make([]int64, 1)
+	numkey = make([]numkeyType, 1)
 	toplen = 10
 }
 
-func curToNum() (out int64) {
+func curToNum() (out numkeyType) {
 	for _, char := range topval[0] {
 		if char >= '0' && char <= '9' {
-			out = 10*out + int64(char-'0')
+			out = 10*out + numkeyType(char-'0')
 		} else {
 			break
 		}
