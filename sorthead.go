@@ -8,7 +8,6 @@ TODO:
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -80,24 +79,36 @@ func copyVal(to, from int) {
 	}
 }
 
-var reader *bufio.Reader
+var buffer [1024]byte
+var bufStart, bufEnd int // automatically 0
+var input []io.Reader
 
-func init() {
-	reader = bufio.NewReader(os.Stdin)
-}
 func readString() bool {
 	topval[0] = topval[0][0:0]
 	for {
-		b, err := reader.ReadByte()
-		if b == '\n' {
-			return true
-		} else if err == io.EOF {
-			return false
-		} else if err != nil {
-			log.Fatalf("read error: %s", err)
-		} else {
-			topval[0] = append(topval[0], b)
+		if bufEnd == bufStart {
+			if bufEnd > 0 {
+				bufStart, bufEnd = 0, 0
+			}
+			if 0 == len(input) {
+				return len(topval[0]) > 0
+			}
+			n, err := input[0].Read(buffer[bufEnd:])
+			if n > 0 {
+				bufEnd += n
+			} else if io.EOF == err {
+				input = input[1:]
+				continue
+			} else {
+				log.Fatalln("read error:", err)
+			}
 		}
+		curByte := buffer[bufStart]
+		bufStart++
+		if '\n' == curByte {
+			return true
+		}
+		topval[0] = append(topval[0], curByte)
 	}
 	panic("")
 }
@@ -113,6 +124,7 @@ func main() {
 		pprof.StartCPUProfile(pf)
 		defer pprof.StopCPUProfile()
 	}
+	input = []io.Reader{os.Stdin}
 	for readString() {
 		add()
 	}
