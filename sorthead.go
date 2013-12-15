@@ -108,6 +108,7 @@ func readString() bool {
 		if '\n' == curByte {
 			return true
 		}
+		// this append() takes more than half of program run time
 		topval[0] = append(topval[0], curByte)
 	}
 	panic("")
