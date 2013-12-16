@@ -61,6 +61,12 @@ func strMore(n int) bool {
 	}
 	return true
 }
+func xor(a, b bool) bool {
+	if a {
+		return !b
+	}
+	return b
+}
 func add() {
 	var curnum numkeyType
 	if flagNum {
@@ -70,11 +76,11 @@ func add() {
 	for i := len(topval) - 1; i > 0; i-- {
 		numi := numkey[i]
 		if flagNum {
-			if curnum < numi {
+			if xor(flagRev, curnum < numi) {
 				break
 			}
 		} else {
-			if strMore(i) {
+			if xor(flagRev, strMore(i)) {
 				break
 			}
 		}
@@ -141,11 +147,12 @@ func readString() bool {
 	panic("")
 }
 
-var flagNum bool
+var flagNum, flagRev bool
 
 func main() {
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 	flag.BoolVar(&flagNum, "n", false, "compare according to string numerical value")
+	flag.BoolVar(&flagRev, "r", false, "reverse the result of comparisons")
 	flag.Parse()
 	if *cpuprofile != "" {
 		pf, err := os.Create(*cpuprofile)
