@@ -16,10 +16,11 @@ import (
 	"runtime/pprof"
 )
 
+type numkeyType float64
+
 // topval[0] and numkey[0] are for current string,
 // the rest are current top values
 var topval [][]byte
-type numkeyType float64
 var numkey []numkeyType
 
 // maximum len(topval) is toplen+1
@@ -43,16 +44,41 @@ func curToNum() (out numkeyType) {
 	}
 	return
 }
+func strMore(n int) bool {
+	//if n >= len(topval) {
+	//	log.Fatalf("topval: %d >= %d", n, len(topval))
+	//}
+	a := topval[0][:]
+	b := topval[n][:]
+	for i := 0; i < len(a); i++ {
+		if i >= len(b) {
+			return true
+		}
+		if a[i] == b[i] {
+			continue
+		}
+		return a[i] > b[i]
+	}
+	return true
+}
 func add() {
-	curnum := curToNum()
-	pos := toplen + 1
+	var curnum numkeyType
+	if flagNum {
+		curnum = curToNum()
+	}
+	pos := len(topval)
 	for i := len(topval) - 1; i > 0; i-- {
 		numi := numkey[i]
-		if curnum > numi {
-			pos = i
-		} else if curnum < numi {
-			break
+		if flagNum {
+			if curnum < numi {
+				break
+			}
+		} else {
+			if strMore(i) {
+				break
+			}
 		}
+		pos = i
 	}
 	if len(topval) < toplen+1 {
 		topval = append(topval, []byte{})
@@ -115,8 +141,11 @@ func readString() bool {
 	panic("")
 }
 
+var flagNum bool
+
 func main() {
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
+	flag.BoolVar(&flagNum, "n", false, "compare according to string numerical value")
 	flag.Parse()
 	if *cpuprofile != "" {
 		pf, err := os.Create(*cpuprofile)
