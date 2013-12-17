@@ -76,7 +76,7 @@ func add() {
 	for i := len(topval) - 1; i > 0; i-- {
 		numi := numkey[i]
 		if flagNum {
-			if xor(flagRev, curnum < numi) {
+			if xor(flagRev, curnum > numi) {
 				break
 			}
 		} else {
