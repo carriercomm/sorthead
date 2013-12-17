@@ -31,7 +31,6 @@ var toplen int
 func init() {
 	topval = [][]byte{{}}
 	numkey = make([]numkeyType, 1)
-	toplen = 10
 }
 
 func curToNum() (out numkeyType) {
@@ -153,7 +152,11 @@ func main() {
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 	flag.BoolVar(&flagNum, "n", false, "compare according to string numerical value")
 	flag.BoolVar(&flagRev, "r", false, "reverse the result of comparisons")
+	flag.IntVar(&toplen, "N", 10, "print the first N lines instead of the first 10")
 	flag.Parse()
+	if toplen < 1 {
+		log.Fatalf("-N must have positive argument")
+	}
 	if *cpuprofile != "" {
 		pf, err := os.Create(*cpuprofile)
 		if err != nil {
