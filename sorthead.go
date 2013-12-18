@@ -21,6 +21,7 @@ type numkeyType float64
 // topval[0] and numkey[0] are for current string,
 // the rest are current top values
 var topval [][]byte
+var keyStart, keyEnd []int
 var numkey []numkeyType
 
 // maximum len(topval) is toplen+1
@@ -30,11 +31,13 @@ var toplen int
 
 func init() {
 	topval = [][]byte{{}}
+	keyStart = []int{0}
+	keyEnd = []int{0}
 	numkey = make([]numkeyType, 1)
 }
 
 func curToNum() (out numkeyType) {
-	for _, char := range topval[0] {
+	for _, char := range topval[0][keyStart[0]:keyEnd[0]] {
 		if char >= '0' && char <= '9' {
 			out = 10*out + numkeyType(char-'0')
 		} else {
@@ -47,8 +50,8 @@ func strMore(n int) bool {
 	//if n >= len(topval) {
 	//	log.Fatalf("topval: %d >= %d", n, len(topval))
 	//}
-	a := topval[0][:]
-	b := topval[n][:]
+	a := topval[0][keyStart[0]:keyEnd[0]]
+	b := topval[n][keyStart[n]:keyEnd[n]]
 	for i := 0; i < len(a); i++ {
 		if i >= len(b) {
 			return true
@@ -87,6 +90,8 @@ func add() {
 	}
 	if len(topval) < toplen+1 {
 		topval = append(topval, []byte{})
+		keyStart = append(keyStart, 0)
+		keyEnd = append(keyEnd, 0)
 		numkey = append(numkey, 0)
 	}
 	for i := len(topval) - 1; i > pos; i-- {
@@ -102,6 +107,8 @@ func copyVal(to, from int) {
 	if from >= len(topval) || from < 0 || to >= len(topval) || to < 0 {
 		log.Fatalf("copyVal bad index: to=%d to=%d len=%d", to, from, len(topval))
 	}
+	keyStart[to] = keyStart[from]
+	keyEnd[to] = keyEnd[from]
 	numkey[to] = numkey[from]
 	copy(topval[to], topval[from])
 	if len(topval[to]) < len(topval[from]) {
@@ -117,12 +124,23 @@ var input []io.Reader
 
 func readString() bool {
 	topval[0] = topval[0][0:0]
+	curlen := 0
+	inField := false
+	curFieldNum := 0
+	keyStart[0] = 0
+	keyEnd[0] = 0
 	for {
 		if bufEnd == bufStart {
 			if bufEnd > 0 {
 				bufStart, bufEnd = 0, 0
 			}
 			if 0 == len(input) {
+				if 0 == flagField {
+					keyStart[0] = 0
+					keyEnd[0] = curlen
+				} else if keyEnd[0] < keyStart[0] {
+					keyEnd[0] = curlen
+				}
 				return len(topval[0]) > 0
 			}
 			n, err := input[0].Read(buffer[bufEnd:])
@@ -137,22 +155,44 @@ func readString() bool {
 		}
 		curByte := buffer[bufStart]
 		bufStart++
+		if flagField != 0 {
+			gotWhitespace := ' ' == curByte || '\t' == curByte || '\n' == curByte
+			if inField && gotWhitespace { // end of field
+				inField = false
+				if curFieldNum == flagField {
+					keyEnd[0] = curlen
+				}
+			} else if (!inField) && (!gotWhitespace) { // start of field
+				inField = true
+				curFieldNum++
+				if curFieldNum == flagField {
+					keyStart[0] = curlen
+				}
+			}
+		}
 		if '\n' == curByte {
+			if 0 == flagField {
+				keyStart[0] = 0
+				keyEnd[0] = curlen
+			}
 			return true
 		}
 		// this append() takes more than half of program run time
 		topval[0] = append(topval[0], curByte)
+		curlen++
 	}
 	panic("")
 }
 
 var flagNum, flagRev bool
+var flagField int
 
 func main() {
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 	flag.BoolVar(&flagNum, "n", false, "compare according to string numerical value")
 	flag.BoolVar(&flagRev, "r", false, "reverse the result of comparisons")
 	flag.IntVar(&toplen, "N", 10, "print the first N lines instead of the first 10")
+	flag.IntVar(&flagField, "k", 0, "sort by field number N, not the wholestring")
 	flag.Parse()
 	if toplen < 1 {
 		log.Fatalf("-N must have positive argument")
@@ -172,4 +212,7 @@ func main() {
 	for _, str := range topval[1:] {
 		fmt.Println(string(str))
 	}
+	//for i := 1; i < len(topval); i++ {
+	//	log.Println("i:", i, "keyStart:", keyStart[i], "keyEnd:", keyEnd[i], "numkey:", numkey[i]) /////////////
+	//}
 }
