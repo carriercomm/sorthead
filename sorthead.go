@@ -192,7 +192,7 @@ func main() {
 	flag.BoolVar(&flagNum, "n", false, "compare according to string numerical value")
 	flag.BoolVar(&flagRev, "r", false, "reverse the result of comparisons")
 	flag.IntVar(&toplen, "N", 10, "print the first N lines instead of the first 10")
-	flag.IntVar(&flagField, "k", 0, "sort by field number N, not the wholestring")
+	flag.IntVar(&flagField, "k", 0, "sort by field number N, not the whole string")
 	flag.Parse()
 	if toplen < 1 {
 		log.Fatalf("-N must have positive argument")
