@@ -249,29 +249,33 @@ func draw(chPing, chPong chan struct{}) {
 			chPong <- struct{}{}
 			return
 		default:
-			buffer := termbox.CellBuffer()
-			for _, cell := range buffer {
-				cell.Ch = ' '
-				cell.Fg = termbox.ColorDefault
-				cell.Bg = termbox.ColorDefault
-			}
-			xsize, ysize := termbox.Size()
-			for i := 0; i < ysize && i < len(topval); i++ {
-				var str []rune
-				if 0 == i {
-					str = []rune(fmt.Sprintf("Processed %d strings in %d seconds", doneStrings, doneSeconds))
-				} else {
-					str = []rune(string(topval[i]))
-				}
-				for j := 0; j < xsize && j < len(str); j++ {
-					termbox.SetCell(j, i, str[j], termbox.ColorDefault, termbox.ColorDefault)
-				}
-			}
-			if err := termbox.Flush(); err != nil {
-				log.Fatalln("Cannot flush termbox:", err)
-			}
-			time.Sleep(time.Second)
-			doneSeconds++
+			drawOnce()
 		}
 	}
+}
+
+func drawOnce() {
+	buffer := termbox.CellBuffer()
+	for _, cell := range buffer {
+		cell.Ch = ' '
+		cell.Fg = termbox.ColorDefault
+		cell.Bg = termbox.ColorDefault
+	}
+	xsize, ysize := termbox.Size()
+	for i := 0; i < ysize && i < len(topval); i++ {
+		var str []rune
+		if 0 == i {
+			str = []rune(fmt.Sprintf("Processed %d strings in %d seconds", doneStrings, doneSeconds))
+		} else {
+			str = []rune(string(topval[i]))
+		}
+		for j := 0; j < xsize && j < len(str); j++ {
+			termbox.SetCell(j, i, str[j], termbox.ColorDefault, termbox.ColorDefault)
+		}
+	}
+	if err := termbox.Flush(); err != nil {
+		log.Fatalln("Cannot flush termbox:", err)
+	}
+	time.Sleep(time.Second)
+	doneSeconds++
 }
