@@ -242,13 +242,16 @@ func draw(chPing, chPong chan struct{}) {
 		log.Fatalln("Cannot initialize termbox", err)
 	}
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	chTimer := make(chan struct{})
+	go timer(chTimer)
+	drawOnce()
 	for {
 		select {
 		case <-chPing:
 			termbox.Close()
 			chPong <- struct{}{}
 			return
-		default:
+		case <-chTimer:
 			drawOnce()
 		}
 	}
@@ -276,6 +279,12 @@ func drawOnce() {
 	if err := termbox.Flush(); err != nil {
 		log.Fatalln("Cannot flush termbox:", err)
 	}
-	time.Sleep(time.Second)
-	doneSeconds++
+}
+
+func timer(chTimer chan struct{}) {
+	for {
+		time.Sleep(time.Second)
+		chTimer <- struct{}{}
+		doneSeconds++
+	}
 }
