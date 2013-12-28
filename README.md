@@ -9,6 +9,7 @@ orders of magnitude faster on large amount of data.
 ## USAGE
 
 	Usage of sorthead:
+	  -I=false: interactive mode
 	  -N=10: print the first N lines instead of the first 10
 	  -k=0: sort by field number N, not the whole string
 	  -n=false: compare according to string numerical value
