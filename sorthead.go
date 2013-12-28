@@ -10,10 +10,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/nsf/termbox-go"
 	"io"
 	"log"
 	"os"
 	"runtime/pprof"
+	"time"
 )
 
 type numkeyType float64
@@ -146,6 +148,7 @@ func readString() bool {
 			n, err := input[0].Read(buffer[bufEnd:])
 			if n > 0 {
 				bufEnd += n
+				doneBytes += int64(n)
 			} else if io.EOF == err {
 				input = input[1:]
 				continue
@@ -184,13 +187,15 @@ func readString() bool {
 	panic("")
 }
 
-var flagNum, flagRev bool
+var flagNum, flagRev, flagInteractive bool
 var flagField int
+var doneBytes, doneStrings, doneSeconds int64
 
 func main() {
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
 	flag.BoolVar(&flagNum, "n", false, "compare according to string numerical value")
 	flag.BoolVar(&flagRev, "r", false, "reverse the result of comparisons")
+	flag.BoolVar(&flagInteractive, "I", false, "interactive mode")
 	flag.IntVar(&toplen, "N", 10, "print the first N lines instead of the first 10")
 	flag.IntVar(&flagField, "k", 0, "sort by field number N, not the whole string")
 	flag.Parse()
@@ -206,13 +211,67 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 	input = []io.Reader{os.Stdin}
+	chPing := make(chan struct{})
+	chPong := make(chan struct{})
+	if flagInteractive {
+		go draw(chPing, chPong)
+	}
 	for readString() {
 		add()
+		doneStrings++
 	}
-	for _, str := range topval[1:] {
-		fmt.Println(string(str))
+	if flagInteractive {
+		chPing <- struct{}{}
+		<-chPong
 	}
+	finalOutput(0)
 	//for i := 1; i < len(topval); i++ {
 	//	log.Println("i:", i, "keyStart:", keyStart[i], "keyEnd:", keyEnd[i], "numkey:", numkey[i]) /////////////
 	//}
+}
+
+func finalOutput(code int) {
+	for _, str := range topval[1:] {
+		fmt.Println(string(str))
+	}
+	os.Exit(code)
+}
+
+func draw(chPing, chPong chan struct{}) {
+	if err := termbox.Init(); err != nil {
+		log.Fatalln("Cannot initialize termbox", err)
+	}
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	for {
+		select {
+		case <-chPing:
+			termbox.Close()
+			chPong <- struct{}{}
+			return
+		default:
+			buffer := termbox.CellBuffer()
+			for _, cell := range buffer {
+				cell.Ch = ' '
+				cell.Fg = termbox.ColorDefault
+				cell.Bg = termbox.ColorDefault
+			}
+			xsize, ysize := termbox.Size()
+			for i := 0; i < ysize && i < len(topval); i++ {
+				var str []rune
+				if 0 == i {
+					str = []rune(fmt.Sprintf("Processed %d strings in %d seconds", doneStrings, doneSeconds))
+				} else {
+					str = []rune(string(topval[i]))
+				}
+				for j := 0; j < xsize && j < len(str); j++ {
+					termbox.SetCell(j, i, str[j], termbox.ColorDefault, termbox.ColorDefault)
+				}
+			}
+			if err := termbox.Flush(); err != nil {
+				log.Fatalln("Cannot flush termbox:", err)
+			}
+			time.Sleep(time.Second)
+			doneSeconds++
+		}
+	}
 }
