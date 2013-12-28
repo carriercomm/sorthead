@@ -1,9 +1,13 @@
 /*
-TODO:
-	-H 1	keep one header line
-	GNU sort options
-	-10	top 10 lines
-	file names in cmdline, not just stdin
+This command is the replacement for `sort ... |head` which works
+orders of magnitude faster on large amount of data.
+
+Usage of sorthead:
+	-I=false: interactive mode
+	-N=10: print the first N lines instead of the first 10
+	-k=0: sort by field number N, not the whole string
+	-n=false: compare according to string numerical value
+	-r=false: reverse the result of comparisons
 */
 package main
 
@@ -305,3 +309,11 @@ func poller(chStop chan bool) {
 		}
 	}
 }
+
+/*
+TODO:
+	-H 1	keep one header line
+	GNU sort options
+	-10	top 10 lines
+	file names in cmdline, not just stdin
+*/
