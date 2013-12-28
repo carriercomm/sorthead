@@ -260,9 +260,8 @@ func draw(chStop chan bool, chDone chan struct{}) {
 			if allDone {
 				chDone <- struct{}{}
 				return
-			} else {
-				finalOutput(1)
 			}
+			finalOutput(1)
 		case <-chTimer:
 			drawOnce()
 		}
