@@ -211,18 +211,18 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 	input = []io.Reader{os.Stdin}
-	chPing := make(chan struct{})
-	chPong := make(chan struct{})
+	chStop := make(chan bool)
+	chDone := make(chan struct{})
 	if flagInteractive {
-		go draw(chPing, chPong)
+		go draw(chStop, chDone)
 	}
 	for readString() {
 		add()
 		doneStrings++
 	}
 	if flagInteractive {
-		chPing <- struct{}{}
-		<-chPong
+		chStop <- true
+		<-chDone
 	}
 	finalOutput(0)
 	//for i := 1; i < len(topval); i++ {
@@ -234,23 +234,31 @@ func finalOutput(code int) {
 	for _, str := range topval[1:] {
 		fmt.Println(string(str))
 	}
+	if 0 != code {
+		log.Println("Warning: command interrupted, not all data processed")
+	}
 	os.Exit(code)
 }
 
-func draw(chPing, chPong chan struct{}) {
+func draw(chStop chan bool, chDone chan struct{}) {
 	if err := termbox.Init(); err != nil {
 		log.Fatalln("Cannot initialize termbox", err)
 	}
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	chTimer := make(chan struct{})
 	go timer(chTimer)
+	go poller(chStop)
 	drawOnce()
 	for {
 		select {
-		case <-chPing:
+		case allDone := <-chStop:
 			termbox.Close()
-			chPong <- struct{}{}
-			return
+			if allDone {
+				chDone <- struct{}{}
+				return
+			} else {
+				finalOutput(1)
+			}
 		case <-chTimer:
 			drawOnce()
 		}
@@ -268,7 +276,7 @@ func drawOnce() {
 	for i := 0; i < ysize && i < len(topval); i++ {
 		var str []rune
 		if 0 == i {
-			str = []rune(fmt.Sprintf("Processed %d strings in %d seconds", doneStrings, doneSeconds))
+			str = []rune(fmt.Sprintf("Processed %d strings in %d seconds. Hit any key to interrupt.", doneStrings, doneSeconds))
 		} else {
 			str = []rune(string(topval[i]))
 		}
@@ -286,5 +294,14 @@ func timer(chTimer chan struct{}) {
 		time.Sleep(time.Second)
 		chTimer <- struct{}{}
 		doneSeconds++
+	}
+}
+
+func poller(chStop chan bool) {
+	for {
+		switch ev := termbox.PollEvent(); ev.Type {
+		case termbox.EventKey:
+			chStop <- false
+		}
 	}
 }
