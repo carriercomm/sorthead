@@ -12,9 +12,9 @@ Usage of sorthead:
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/nsf/termbox-go"
+	flag "github.com/ogier/pflag"
 	"io"
 	"log"
 	"os"
@@ -196,13 +196,21 @@ var flagField int
 var doneBytes, doneStrings, doneSeconds int64
 
 func main() {
-	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to file")
-	flag.BoolVar(&flagNum, "n", false, "compare according to string numerical value")
-	flag.BoolVar(&flagRev, "r", false, "reverse the result of comparisons")
-	flag.BoolVar(&flagInteractive, "I", false, "interactive mode")
-	flag.IntVar(&toplen, "N", 10, "print the first N lines instead of the first 10")
-	flag.IntVar(&flagField, "k", 0, "sort by field number N, not the whole string")
+	var cpuprofile *string
+	//cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+	flag.BoolVarP(&flagNum, "numeric-sort", "n", false, "compare according to string numerical value")
+	flag.BoolVarP(&flagRev, "reverse", "r", false, "reverse the result of comparisons")
+	flag.BoolVarP(&flagInteractive, "interactive", "I", false, "interactive mode (it is the default when no -N given)")
+	flag.IntVarP(&toplen, "lines", "N", 10, "print the first N lines instead of the first 10")
+	flag.IntVarP(&flagField, "key", "k", 0, "sort by field number N, not the whole string")
 	flag.Parse()
+	flagGiven := map[string]bool{}
+	flag.Visit(func(pf *flag.Flag) {
+		flagGiven[pf.Name] = true
+	})
+	if !flagGiven["interactive"] && !flagGiven["lines"] {
+		flagInteractive = true
+	}
 	if toplen < 1 {
 		log.Fatalf("-N must have positive argument")
 	}
@@ -229,9 +237,6 @@ func main() {
 		<-chDone
 	}
 	finalOutput(0)
-	//for i := 1; i < len(topval); i++ {
-	//	log.Println("i:", i, "keyStart:", keyStart[i], "keyEnd:", keyEnd[i], "numkey:", numkey[i]) /////////////
-	//}
 }
 
 func finalOutput(code int) {
