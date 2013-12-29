@@ -129,6 +129,7 @@ func copyVal(to, from int) {
 var buffer [1024]byte
 var bufStart, bufEnd int // automatically 0
 var input []inputFile = []inputFile{}
+
 type inputFile struct {
 	file io.Reader
 	name string
@@ -161,6 +162,7 @@ func readString() bool {
 				doneBytes += int64(n)
 			} else if io.EOF == err {
 				input = input[1:]
+				curFileStrings = 0
 				continue
 			} else {
 				tbclose()
@@ -201,7 +203,7 @@ func readString() bool {
 
 var flagNum, flagRev, flagInteractive bool
 var flagField int
-var doneBytes, doneStrings int64
+var doneBytes, doneStrings, curFileStrings int64
 var inTermbox bool
 var started time.Time = time.Now()
 
@@ -270,6 +272,7 @@ func main() {
 	for readString() {
 		add()
 		doneStrings++
+		curFileStrings++
 	}
 	if flagInteractive {
 		chStop <- true
@@ -314,7 +317,9 @@ func drawOnce() {
 	for i := 0; i < ysize && i < len(topval); i++ {
 		var str []rune
 		if 0 == i {
-			str = []rune(fmt.Sprintf("Processed %d strings in %.1f seconds. Hit any key to interrupt.", doneStrings, time.Since(started).Seconds()))
+			str = []rune(fmt.Sprintf(
+				"Processed %d strings (%d strings in file %#v) in %.1f seconds. Hit any key to interrupt.",
+				doneStrings, curFileStrings, input[0].name, time.Since(started).Seconds()))
 		} else {
 			str = []rune(string(topval[i]))
 		}
@@ -353,7 +358,6 @@ func tbclose() {
 
 /*
 TODO:
-	show current file name in interactive mode
 	GNU sort options, including full -k POS syntax
 	-10	top 10 lines
 */
