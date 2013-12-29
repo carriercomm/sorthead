@@ -2,6 +2,9 @@
 This command is the replacement for `sort ... | head` which works
 orders of magnitude faster on large amount of data.
 
+Example usage: find out what takes your disk space (shows current top directories while still working):
+	  `du -a | sorthead -nr`
+
 Usage of sorthead:
 	-I, --interactive=false: interactive mode (it is the default when no -N given)
 	-k, --key=0: sort by field number N, not the whole string

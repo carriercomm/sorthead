@@ -7,7 +7,12 @@ Faster replacement for `sort ... | head`.
 Works orders of magnitude faster on large amount of data.
 Shows partial results (the current top) while working.
 
-## USAGE
+## EXAMPLE USAGE
+
+	Find out what takes your disk space (shows current top directories while still working):
+	  `du -a | sorthead -nr`
+
+## OPTIONS
 
 	Usage of sorthead:
 	  -I, --interactive=false: interactive mode (it is the default when no -N given)
