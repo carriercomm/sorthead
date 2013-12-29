@@ -7,6 +7,7 @@ Example usage: find out what takes your disk space (shows current top directorie
 	du -a | sorthead -nr
 
 Usage of sorthead:
+	-<digits>: same as -N <digits> (this option must always come first)
 	-I, --interactive=false: interactive mode (it is the default when no -N given)
 	-k, --key=0: sort by field number N, not the whole string
 	-N, --lines=10: print the first N lines instead of the first 10 (in interactive mode default is window size)
@@ -212,6 +213,7 @@ var inTermbox bool
 var started = time.Now()
 
 func main() {
+	dashDigits("-N")
 	var cpuprofile *string
 	//cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 	flag.BoolVarP(&flagNum, "numeric-sort", "n", false, "compare according to string numerical value")
@@ -295,6 +297,35 @@ func finalOutput(code int) {
 	os.Exit(code)
 }
 
+func isDigit(ch byte) bool {
+	return byte('0') <= ch && ch <= byte('9')
+}
+func dashDigits(option string) {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  -<digits>: same as %s <digits> (this option must always come first)\n", option)
+		flag.PrintDefaults()
+	}
+	if len(os.Args) <= 1 {
+		return
+	}
+	arg1 := []byte(os.Args[1])
+	if len(arg1) < 2 || '-' != arg1[0] || !isDigit(arg1[1]) {
+		return
+	}
+	for i, ch := range arg1[1:] {
+		if !isDigit(ch) {
+			tbclose()
+			log.Fatalf("bad dash-digits syntax: non digit characters %#v after %#v",
+				arg1[i+1:], arg1[:i+1])
+		}
+	}
+	os.Args = append(os.Args, "")
+	copy(os.Args[3:], os.Args[2:])
+	os.Args[1] = option
+	os.Args[2] = string(arg1[1:])
+}
+
 func drawer(chStop chan bool, chDone chan struct{}) {
 	chTimer := make(chan struct{})
 	go timer(chTimer)
@@ -363,5 +394,4 @@ func tbclose() {
 /*
 TODO:
 	GNU sort options, including full -k POS syntax
-	-10	top 10 lines
 */
