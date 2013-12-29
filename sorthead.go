@@ -1,5 +1,5 @@
 /*
-This command is the replacement for `sort ... |head` which works
+This command is the replacement for `sort ... | head` which works
 orders of magnitude faster on large amount of data.
 
 Usage of sorthead:
