@@ -317,7 +317,7 @@ func dashDigits(option string) {
 		if !isDigit(ch) {
 			tbclose()
 			log.Fatalf("bad dash-digits syntax: non digit characters %#v after %#v",
-				arg1[i+1:], arg1[:i+1])
+				string(arg1[i+1:]), string(arg1[:i+1]))
 		}
 	}
 	os.Args = append(os.Args, "")
