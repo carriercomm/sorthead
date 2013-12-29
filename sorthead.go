@@ -128,7 +128,7 @@ func copyVal(to, from int) {
 
 var buffer [1024]byte
 var bufStart, bufEnd int // automatically 0
-var input []inputFile = []inputFile{}
+var input = []inputFile{}
 
 type inputFile struct {
 	file io.Reader
@@ -205,7 +205,7 @@ var flagNum, flagRev, flagInteractive bool
 var flagField int
 var doneBytes, doneStrings, curFileStrings int64
 var inTermbox bool
-var started time.Time = time.Now()
+var started = time.Now()
 
 func main() {
 	var cpuprofile *string
