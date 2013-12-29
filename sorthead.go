@@ -253,7 +253,6 @@ func draw(chStop chan bool, chDone chan struct{}) {
 	if err := termbox.Init(); err != nil {
 		log.Fatalln("Cannot initialize termbox", err)
 	}
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	chTimer := make(chan struct{})
 	go timer(chTimer)
 	go poller(chStop)
@@ -274,12 +273,7 @@ func draw(chStop chan bool, chDone chan struct{}) {
 }
 
 func drawOnce() {
-	buffer := termbox.CellBuffer()
-	for _, cell := range buffer {
-		cell.Ch = ' '
-		cell.Fg = termbox.ColorDefault
-		cell.Bg = termbox.ColorDefault
-	}
+	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	xsize, ysize := termbox.Size()
 	for i := 0; i < ysize && i < len(topval); i++ {
 		var str []rune
