@@ -214,7 +214,7 @@ func main() {
 	if toplen < 1 {
 		log.Fatalf("-N must have positive argument")
 	}
-	if *cpuprofile != "" {
+	if nil != cpuprofile && *cpuprofile != "" {
 		pf, err := os.Create(*cpuprofile)
 		if err != nil {
 			log.Fatalf("cannot create %s: %s", *cpuprofile, err)
