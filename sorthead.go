@@ -54,6 +54,7 @@ func curToNum() (out numkeyType) {
 }
 func strMore(n int) bool {
 	//if n >= len(topval) {
+	//	tbclose()
 	//	log.Fatalf("topval: %d >= %d", n, len(topval))
 	//}
 	a := topval[0][keyStart[0]:keyEnd[0]]
@@ -111,6 +112,7 @@ func add() {
 
 func copyVal(to, from int) {
 	if from >= len(topval) || from < 0 || to >= len(topval) || to < 0 {
+		tbclose()
 		log.Fatalf("copyVal bad index: to=%d to=%d len=%d", to, from, len(topval))
 	}
 	keyStart[to] = keyStart[from]
@@ -157,6 +159,7 @@ func readString() bool {
 				input = input[1:]
 				continue
 			} else {
+				tbclose()
 				log.Fatalln("read error:", err)
 			}
 		}
@@ -188,12 +191,14 @@ func readString() bool {
 		topval[0] = append(topval[0], curByte)
 		curlen++
 	}
+	tbclose()
 	panic("")
 }
 
 var flagNum, flagRev, flagInteractive bool
 var flagField int
 var doneBytes, doneStrings, doneSeconds int64
+var inTermbox bool
 
 func main() {
 	var cpuprofile *string
@@ -212,11 +217,13 @@ func main() {
 		flagInteractive = true
 	}
 	if toplen < 1 {
+		tbclose()
 		log.Fatalf("-N must have positive argument")
 	}
 	if nil != cpuprofile && *cpuprofile != "" {
 		pf, err := os.Create(*cpuprofile)
 		if err != nil {
+			tbclose()
 			log.Fatalf("cannot create %s: %s", *cpuprofile, err)
 		}
 		pprof.StartCPUProfile(pf)
@@ -227,11 +234,14 @@ func main() {
 	chDone := make(chan struct{})
 	if flagInteractive {
 		if err := termbox.Init(); err != nil {
+			tbclose()
 			log.Fatalln("Cannot initialize termbox", err)
 		}
+		inTermbox = true
 		if !flagGiven["lines"] {
 			_, ysize := termbox.Size()
 			if ysize < 5 {
+				tbclose()
 				log.Fatalln("Window size is too small")
 			}
 			toplen = ysize - 1
@@ -267,7 +277,7 @@ func drawer(chStop chan bool, chDone chan struct{}) {
 	for {
 		select {
 		case allDone := <-chStop:
-			termbox.Close()
+			tbclose()
 			if allDone {
 				chDone <- struct{}{}
 				return
@@ -294,6 +304,7 @@ func drawOnce() {
 		}
 	}
 	if err := termbox.Flush(); err != nil {
+		tbclose()
 		log.Fatalln("Cannot flush termbox:", err)
 	}
 }
@@ -315,10 +326,16 @@ func poller(chStop chan bool) {
 	}
 }
 
+func tbclose() {
+	if inTermbox {
+		termbox.Close()
+		inTermbox = false
+	}
+}
+
 /*
 TODO:
 	remove doneSeconds
-	close termbox before each log.Fatal or panic
 	file names in cmdline, not just stdin
 	GNU sort options, including full -k POS syntax
 	-10	top 10 lines
