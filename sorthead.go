@@ -317,8 +317,9 @@ func poller(chStop chan bool) {
 
 /*
 TODO:
-	-H 1	keep one header line
-	GNU sort options
-	-10	top 10 lines
+	remove doneSeconds
+	close termbox before each log.Fatal or panic
 	file names in cmdline, not just stdin
+	GNU sort options, including full -k POS syntax
+	-10	top 10 lines
 */
