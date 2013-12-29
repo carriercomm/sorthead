@@ -128,7 +128,11 @@ func copyVal(to, from int) {
 
 var buffer [1024]byte
 var bufStart, bufEnd int // automatically 0
-var input []io.Reader
+var input []inputFile = []inputFile{}
+type inputFile struct {
+	file io.Reader
+	name string
+}
 
 func readString() bool {
 	topval[0] = topval[0][0:0]
@@ -151,7 +155,7 @@ func readString() bool {
 				}
 				return len(topval[0]) > 0
 			}
-			n, err := input[0].Read(buffer[bufEnd:])
+			n, err := input[0].file.Read(buffer[bufEnd:])
 			if n > 0 {
 				bufEnd += n
 				doneBytes += int64(n)
@@ -230,7 +234,22 @@ func main() {
 		pprof.StartCPUProfile(pf)
 		defer pprof.StopCPUProfile()
 	}
-	input = []io.Reader{os.Stdin}
+	inputFilenames := flag.Args()
+	if 0 == len(inputFilenames) {
+		inputFilenames = []string{"-"}
+	}
+	for _, name := range inputFilenames {
+		file := os.Stdin
+		if "-" != name {
+			var err error
+			file, err = os.Open(name)
+			if nil != err {
+				tbclose()
+				log.Fatalln(err)
+			}
+		}
+		input = append(input, inputFile{file: file, name: name})
+	}
 	chStop := make(chan bool)
 	chDone := make(chan struct{})
 	if flagInteractive {
@@ -334,7 +353,7 @@ func tbclose() {
 
 /*
 TODO:
-	file names in cmdline, not just stdin
+	show current file name in interactive mode
 	GNU sort options, including full -k POS syntax
 	-10	top 10 lines
 */
