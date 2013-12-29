@@ -226,7 +226,7 @@ func main() {
 	chStop := make(chan bool)
 	chDone := make(chan struct{})
 	if flagInteractive {
-		go draw(chStop, chDone)
+		go drawer(chStop, chDone)
 	}
 	for readString() {
 		add()
@@ -249,7 +249,7 @@ func finalOutput(code int) {
 	os.Exit(code)
 }
 
-func draw(chStop chan bool, chDone chan struct{}) {
+func drawer(chStop chan bool, chDone chan struct{}) {
 	if err := termbox.Init(); err != nil {
 		log.Fatalln("Cannot initialize termbox", err)
 	}
