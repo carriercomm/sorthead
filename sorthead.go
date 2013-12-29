@@ -197,8 +197,9 @@ func readString() bool {
 
 var flagNum, flagRev, flagInteractive bool
 var flagField int
-var doneBytes, doneStrings, doneSeconds int64
+var doneBytes, doneStrings int64
 var inTermbox bool
+var started time.Time = time.Now()
 
 func main() {
 	var cpuprofile *string
@@ -295,7 +296,7 @@ func drawOnce() {
 	for i := 0; i < ysize && i < len(topval); i++ {
 		var str []rune
 		if 0 == i {
-			str = []rune(fmt.Sprintf("Processed %d strings in %d seconds. Hit any key to interrupt.", doneStrings, doneSeconds))
+			str = []rune(fmt.Sprintf("Processed %d strings in %.1f seconds. Hit any key to interrupt.", doneStrings, time.Since(started).Seconds()))
 		} else {
 			str = []rune(string(topval[i]))
 		}
@@ -313,7 +314,6 @@ func timer(chTimer chan struct{}) {
 	for {
 		time.Sleep(time.Second)
 		chTimer <- struct{}{}
-		doneSeconds++
 	}
 }
 
@@ -335,7 +335,6 @@ func tbclose() {
 
 /*
 TODO:
-	remove doneSeconds
 	file names in cmdline, not just stdin
 	GNU sort options, including full -k POS syntax
 	-10	top 10 lines
