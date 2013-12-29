@@ -5,7 +5,7 @@ orders of magnitude faster on large amount of data.
 Usage of sorthead:
 	-I, --interactive=false: interactive mode (it is the default when no -N given)
 	-k, --key=0: sort by field number N, not the whole string
-	-N, --lines=10: print the first N lines instead of the first 10
+	-N, --lines=10: print the first N lines instead of the first 10 (in interactive mode default is window size)
 	-n, --numeric-sort=false: compare according to string numerical value
 	-r, --reverse=false: reverse the result of comparisons
 */
@@ -201,7 +201,7 @@ func main() {
 	flag.BoolVarP(&flagNum, "numeric-sort", "n", false, "compare according to string numerical value")
 	flag.BoolVarP(&flagRev, "reverse", "r", false, "reverse the result of comparisons")
 	flag.BoolVarP(&flagInteractive, "interactive", "I", false, "interactive mode (it is the default when no -N given)")
-	flag.IntVarP(&toplen, "lines", "N", 10, "print the first N lines instead of the first 10")
+	flag.IntVarP(&toplen, "lines", "N", 10, "print the first N lines instead of the first 10 (in interactive mode default is window size)")
 	flag.IntVarP(&flagField, "key", "k", 0, "sort by field number N, not the whole string")
 	flag.Parse()
 	flagGiven := map[string]bool{}
@@ -226,6 +226,16 @@ func main() {
 	chStop := make(chan bool)
 	chDone := make(chan struct{})
 	if flagInteractive {
+		if err := termbox.Init(); err != nil {
+			log.Fatalln("Cannot initialize termbox", err)
+		}
+		if !flagGiven["lines"] {
+			_, ysize := termbox.Size()
+			if ysize < 5 {
+				log.Fatalln("Window size is too small")
+			}
+			toplen = ysize - 1
+		}
 		go drawer(chStop, chDone)
 	}
 	for readString() {
@@ -250,9 +260,6 @@ func finalOutput(code int) {
 }
 
 func drawer(chStop chan bool, chDone chan struct{}) {
-	if err := termbox.Init(); err != nil {
-		log.Fatalln("Cannot initialize termbox", err)
-	}
 	chTimer := make(chan struct{})
 	go timer(chTimer)
 	go poller(chStop)

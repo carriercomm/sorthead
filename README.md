@@ -12,7 +12,7 @@ Shows partial results (the current top) while working.
 	Usage of sorthead:
 	  -I, --interactive=false: interactive mode (it is the default when no -N given)
 	  -k, --key=0: sort by field number N, not the whole string
-	  -N, --lines=10: print the first N lines instead of the first 10
+	  -N, --lines=10: print the first N lines instead of the first 10 (in interactive mode default is window size)
 	  -n, --numeric-sort=false: compare according to string numerical value
 	  -r, --reverse=false: reverse the result of comparisons
 
