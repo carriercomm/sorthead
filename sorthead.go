@@ -3,11 +3,11 @@ This command is the replacement for `sort ... |head` which works
 orders of magnitude faster on large amount of data.
 
 Usage of sorthead:
-	-I=false: interactive mode
-	-N=10: print the first N lines instead of the first 10
-	-k=0: sort by field number N, not the whole string
-	-n=false: compare according to string numerical value
-	-r=false: reverse the result of comparisons
+	-I, --interactive=false: interactive mode (it is the default when no -N given)
+	-k, --key=0: sort by field number N, not the whole string
+	-N, --lines=10: print the first N lines instead of the first 10
+	-n, --numeric-sort=false: compare according to string numerical value
+	-r, --reverse=false: reverse the result of comparisons
 */
 package main
 
