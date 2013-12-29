@@ -10,6 +10,7 @@ Shows partial results (the current top) while working.
 ## EXAMPLE USAGE
 
 Find out what takes your disk space (shows current top directories while still working):
+
 	`du -a | sorthead -nr`
 
 ## OPTIONS
