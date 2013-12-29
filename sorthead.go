@@ -241,11 +241,10 @@ func main() {
 		inTermbox = true
 		if !flagGiven["lines"] {
 			_, ysize := termbox.Size()
-			if ysize < 5 {
-				tbclose()
-				log.Fatalln("Window size is too small")
+			toplen = ysize - 4
+			if toplen < 10 {
+				toplen = 10
 			}
-			toplen = ysize - 1
 		}
 		go drawer(chStop, chDone)
 	}
