@@ -245,6 +245,7 @@ func main() {
 	inputFilenames := flag.Args()
 	if 0 == len(inputFilenames) {
 		inputFilenames = []string{"-"}
+		useShortHeader = true
 	}
 	for _, name := range inputFilenames {
 		file := os.Stdin
@@ -346,17 +347,23 @@ func drawer(chStop chan bool, chDone chan struct{}) {
 	}
 }
 
+var drawHeader = "Processed %d strings (%d strings in file %#v) in %.1f seconds. Hit any key to interrupt."
+var drawShortHeader = "Processed %d strings in %.1f seconds. Hit any key to interrupt."
+var useShortHeader bool
+
 func drawOnce() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	xsize, ysize := termbox.Size()
 	for i := 0; i < ysize && i < len(topval); i++ {
 		var str []rune
-		if 0 == i {
-			str = []rune(fmt.Sprintf(
-				"Processed %d strings (%d strings in file %#v) in %.1f seconds. Hit any key to interrupt.",
-				doneStrings, curFileStrings, input[0].name, time.Since(started).Seconds()))
-		} else {
+		if 0 != i {
 			str = []rune(string(topval[i]))
+		} else if useShortHeader {
+			str = []rune(fmt.Sprintf(drawShortHeader, doneStrings,
+				time.Since(started).Seconds()))
+		} else {
+			str = []rune(fmt.Sprintf(drawHeader, doneStrings,
+				curFileStrings, input[0].name, time.Since(started).Seconds()))
 		}
 		for j := 0; j < xsize && j < len(str); j++ {
 			termbox.SetCell(j, i, str[j], termbox.ColorDefault, termbox.ColorDefault)
