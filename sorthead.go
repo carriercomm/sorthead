@@ -1,5 +1,5 @@
 /*
-Faster replacement for `sort ... | head`.
+Faster replacement for `sort | head`.
 Works orders of magnitude faster on large amount of data.
 Shows partial results (the current top) while working.
 
