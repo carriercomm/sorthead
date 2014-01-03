@@ -369,9 +369,9 @@ func drawOnce() {
 			termbox.SetCell(j, i, str[j], termbox.ColorDefault, termbox.ColorDefault)
 		}
 	}
-	if err := termbox.Flush(); err != nil {
+	if err := termbox.Sync(); err != nil {
 		tbclose()
-		log.Fatalln("Cannot flush termbox:", err)
+		log.Fatalln("Cannot sync termbox:", err)
 	}
 }
 
