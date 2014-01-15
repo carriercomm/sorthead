@@ -8,6 +8,7 @@ Example usage: find out what takes your disk space (shows current top directorie
 
 Usage of sorthead:
 	-<digits>: same as -N <digits> (this option must always come first)
+	-h, --human-numeric-sort=false: compare human readable numbers (e.g., 2K 1G)
 	-I, --interactive=false: interactive mode (it is the default when no -N given)
 	-k, --key=0: sort by field number N, not the whole string
 	-N, --lines=10: print the first N lines instead of the first 10 (in interactive mode default is window size)
