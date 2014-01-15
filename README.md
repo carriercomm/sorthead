@@ -11,7 +11,7 @@ Shows partial results (the current top) while working.
 
 Find out what takes your disk space (shows current top directories while still working):
 
-	du -a | sorthead -nr
+	du -ha | sorthead -hr
 
 ## OPTIONS
 

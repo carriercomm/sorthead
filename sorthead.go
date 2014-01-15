@@ -4,7 +4,7 @@ Works orders of magnitude faster on large amount of data.
 Shows partial results (the current top) while working.
 
 Example usage: find out what takes your disk space (shows current top directories while still working):
-	du -a | sorthead -nr
+	du -ha | sorthead -hr
 
 Usage of sorthead:
 	-<digits>: same as -N <digits> (this option must always come first)
