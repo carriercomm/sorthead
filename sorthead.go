@@ -47,10 +47,42 @@ func init() {
 	numkey = make([]numkeyType, 1)
 }
 
+var suffix map[byte]numkeyType = map[byte]numkeyType{}
+
+func init() {
+	m1 := numkeyType(1024)
+	cur := numkeyType(1)
+	for _, c := range []byte("KMGTPEZY") {
+		cur *= m1
+		suffix[c] = cur
+	}
+	suffix['k'] = suffix['K']
+	suffix['m'] = suffix['M']
+}
+
 func curToNum() (out numkeyType) {
+	afterDot := false
+	multiplier := numkeyType(1)
 	for _, char := range topval[0][keyStart[0]:keyEnd[0]] {
 		if char >= '0' && char <= '9' {
-			out = 10*out + numkeyType(char-'0')
+			addition := numkeyType(char - '0')
+			if afterDot {
+				multiplier *= 0.1
+				out += multiplier * addition
+			} else {
+				out *= 10
+				out += addition
+			}
+		} else if '.' == char {
+			if afterDot {
+				break
+			}
+			afterDot = true
+		} else if flagHuman {
+			if multiplier, known := suffix[char]; known {
+				out *= multiplier
+			}
+			break
 		} else {
 			break
 		}
@@ -83,13 +115,13 @@ func xor(a, b bool) bool {
 }
 func add() {
 	var curnum numkeyType
-	if flagNum {
+	if numCmp {
 		curnum = curToNum()
 	}
 	pos := len(topval)
 	for i := len(topval) - 1; i > 0; i-- {
 		numi := numkey[i]
-		if flagNum {
+		if numCmp {
 			if xor(flagRev, curnum > numi) {
 				break
 			}
@@ -206,10 +238,10 @@ func readString() bool {
 	panic("")
 }
 
-var flagNum, flagRev, flagInteractive bool
+var flagNum, flagHuman, flagRev, flagInteractive bool
 var flagField int
 var doneBytes, doneStrings, curFileStrings int64
-var inTermbox bool
+var inTermbox, numCmp bool
 var started = time.Now()
 
 func main() {
@@ -217,11 +249,17 @@ func main() {
 	var cpuprofile *string
 	//cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 	flag.BoolVarP(&flagNum, "numeric-sort", "n", false, "compare according to string numerical value")
+	flag.BoolVarP(&flagHuman, "human-numeric-sort", "h", false, "compare human readable numbers (e.g., 2K 1G)")
 	flag.BoolVarP(&flagRev, "reverse", "r", false, "reverse the result of comparisons")
 	flag.BoolVarP(&flagInteractive, "interactive", "I", false, "interactive mode (it is the default when no -N given)")
 	flag.IntVarP(&toplen, "lines", "N", 10, "print the first N lines instead of the first 10 (in interactive mode default is window size)")
 	flag.IntVarP(&flagField, "key", "k", 0, "sort by field number N, not the whole string")
 	flag.Parse()
+	numCmp = flagNum || flagHuman
+	if flagNum && flagHuman {
+		tbclose()
+		log.Fatalln("options `-hn' are incompatible")
+	}
 	flagGiven := map[string]bool{}
 	flag.Visit(func(pf *flag.Flag) {
 		flagGiven[pf.Name] = true
