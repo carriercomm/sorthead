@@ -48,7 +48,7 @@ func init() {
 	numkey = make([]numkeyType, 1)
 }
 
-var suffix map[byte]numkeyType = map[byte]numkeyType{}
+var suffix = map[byte]numkeyType{}
 
 func init() {
 	m1 := numkeyType(1024)
