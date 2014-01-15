@@ -248,6 +248,7 @@ var started = time.Now()
 func main() {
 	dashDigits("-N")
 	var cpuprofile *string
+	// Uncomment the following line to enable --cpuprofile option:
 	//cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 	flag.BoolVarP(&flagNum, "numeric-sort", "n", false, "compare according to string numerical value")
 	flag.BoolVarP(&flagHuman, "human-numeric-sort", "h", false, "compare human readable numbers (e.g., 2K 1G)")
@@ -334,6 +335,7 @@ func finalOutput(code int) {
 	if 0 != code {
 		log.Println("Warning: command interrupted, not all data processed")
 	}
+	pprof.StopCPUProfile()
 	os.Exit(code)
 }
 
